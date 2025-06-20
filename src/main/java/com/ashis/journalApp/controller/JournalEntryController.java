@@ -8,11 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collector;
-
 
 @RestController
 @RequestMapping("/journal")
@@ -34,11 +30,12 @@ public class JournalEntryController {
             }
         }
 
+
+
         @PostMapping
         public ResponseEntity<JournalEntry> createEntry(@RequestBody JournalEntry myEntry) // localhost:8080/journal -->(POST)if do post then will reach here
         {
             try {
-                myEntry.setDate(LocalDateTime.now());
                 journalEntryService.saveEntry(myEntry);
                 return new ResponseEntity<JournalEntry>(myEntry, HttpStatus.CREATED); //succesfully created a entry
             }catch (Exception e)
@@ -46,6 +43,8 @@ public class JournalEntryController {
                 return new ResponseEntity<JournalEntry>(HttpStatus.BAD_REQUEST);
             }
         }
+
+
 
         @GetMapping("id/{myId}") //get entry by using id localhost:8080/journal/id/(myId)
         public ResponseEntity<JournalEntry> getJournalEntryById(@PathVariable ObjectId myId)
@@ -62,12 +61,16 @@ public class JournalEntryController {
             }
         }
 
+
+
     @DeleteMapping("id/{myId}") //delete enrty by using it's id  localhost:8080/journal/id/2(myId)
     public ResponseEntity<?> deleteJournalEntryById(@PathVariable ObjectId myId)
     {
         journalEntryService.deleteById(myId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT); //successfully deleted
     }
+
+
 
     @PutMapping ("id/{myId}") //update enrty by using it's id  localhost:8080/journal/id/2(myId)
     public ResponseEntity<?> updateJournalEntryById(@PathVariable ObjectId myId ,@RequestBody JournalEntry newEntry)
