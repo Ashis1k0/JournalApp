@@ -1,7 +1,9 @@
 package com.ashis.journalApp.controller;
 
 import com.ashis.journalApp.entity.JournalEntry;
+import com.ashis.journalApp.entity.User;
 import com.ashis.journalApp.service.JournalEntryService;
+import com.ashis.journalApp.service.UserService;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,10 +19,15 @@ public class JournalEntryController {
         @Autowired
         private JournalEntryService journalEntryService;
 
-        @GetMapping
-        public ResponseEntity<?> getAll() // localhost:8080/journal -->(GET) as we haven't added a end point for this mapping; so for this url call when we call get we will reach here
+        @Autowired
+        private UserService userService;
+
+
+        @GetMapping("{userName}")
+        public ResponseEntity<?> getAllJournalEntriesOfUser(@PathVariable String userName) // localhost:8080/journal -->(GET) as we haven't added a end point for this mapping; so for this url call when we call get we will reach here
         {
-            List<JournalEntry> journalEntryServiceAll = journalEntryService.getAll();
+            User user = userService.findByUserName(userName);
+            List<JournalEntry> journalEntryServiceAll = user.getJournalEntries();
             if(journalEntryServiceAll != null && !journalEntryServiceAll.isEmpty())
             {
                 return new ResponseEntity<>(journalEntryServiceAll, HttpStatus.OK);
@@ -32,15 +39,16 @@ public class JournalEntryController {
 
 
 
-        @PostMapping
-        public ResponseEntity<JournalEntry> createEntry(@RequestBody JournalEntry myEntry) // localhost:8080/journal -->(POST)if do post then will reach here
+        @PostMapping({"userName"})
+        public ResponseEntity<JournalEntry> createEntry(@RequestBody JournalEntry myEntry ,@PathVariable String userName) // localhost:8080/journal -->(POST)if do post then will reach here
         {
             try {
-                journalEntryService.saveEntry(myEntry);
-                return new ResponseEntity<JournalEntry>(myEntry, HttpStatus.CREATED); //succesfully created a entry
+                //first Find user
+                journalEntryService.saveEntry(myEntry,userName);
+                return new ResponseEntity<>(myEntry, HttpStatus.CREATED); //succesfully created a entry
             }catch (Exception e)
             {
-                return new ResponseEntity<JournalEntry>(HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
         }
 
@@ -63,17 +71,20 @@ public class JournalEntryController {
 
 
 
-    @DeleteMapping("id/{myId}") //delete enrty by using it's id  localhost:8080/journal/id/2(myId)
-    public ResponseEntity<?> deleteJournalEntryById(@PathVariable ObjectId myId)
+    @DeleteMapping("id/{userName}/{myId}") //delete enrty by using it's id  localhost:8080/journal/id/2(myId)
+    public ResponseEntity<?> deleteJournalEntryById(@PathVariable ObjectId myId ,@PathVariable String userName)
     {
-        journalEntryService.deleteById(myId);
+        journalEntryService.deleteById(myId,userName);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT); //successfully deleted
     }
 
 
 
-    @PutMapping ("id/{myId}") //update enrty by using it's id  localhost:8080/journal/id/2(myId)
-    public ResponseEntity<?> updateJournalEntryById(@PathVariable ObjectId myId ,@RequestBody JournalEntry newEntry)
+    @PutMapping ("id/{userName}/{myId}") //update enrty by using it's id  localhost:8080/journal/id/2(myId)
+    public ResponseEntity<?> updateJournalEntryById(
+            @PathVariable ObjectId myId ,
+            @RequestBody JournalEntry newEntry ,
+            @PathVariable String userName)
     {
         JournalEntry oldEntry = journalEntryService.findByObjId(myId).orElse(null); //stores the prevEntry
         //if oldEnty is noot null
@@ -86,7 +97,7 @@ public class JournalEntryController {
             journalEntryService.saveEntry(oldEntry);
             return new ResponseEntity<>(oldEntry,HttpStatus.OK);
         }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
 
     }

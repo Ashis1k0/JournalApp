@@ -1,6 +1,7 @@
 package com.ashis.journalApp.service;
 
 import com.ashis.journalApp.entity.JournalEntry;
+import com.ashis.journalApp.entity.User;
 import com.ashis.journalApp.repository.JournalEntryRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
@@ -18,14 +19,23 @@ public class JournalEntryService {
     @Autowired //DI
     private JournalEntryRepository journalEntryRepository;
 
-    public void saveEntry(JournalEntry journalEntry) {
-        try {
+    @Autowired
+    private UserService userService;
+
+    public void saveEntry(JournalEntry journalEntry, String userName) {
+            //find user
+            User user = userService.findByUserName(userName);
+            //save journal entry locally in saved
             journalEntry.setDate(LocalDateTime.now());
-            journalEntryRepository.save(journalEntry);
-        }catch (Exception e)
-        {
-            log.error("Exception : "+e);
-        }
+            JournalEntry saved = journalEntryRepository.save(journalEntry);
+            //added saved to user's journal Entry
+            user.getJournalEntries().add(saved);
+            userService.saveEntry(user); //lastly saved the user in db with new journal entry
+
+    }
+
+    public void saveEntry(JournalEntry journalEntry) {
+       journalEntryRepository.save(journalEntry);
 
     }
     public List<JournalEntry> getAll()
@@ -37,8 +47,12 @@ public class JournalEntryService {
     {
         return journalEntryRepository.findById(id);
     }
-    public void deleteById(ObjectId id)
+    public void deleteById(ObjectId id, String userName)
     {
+        //find user
+        User user = userService.findByUserName(userName);
+        user.getJournalEntries().removeIf(x -> x.getId().equals(id)); //remove that journal entry ref that we have deleted
+        userService.saveEntry(user); //update user
         journalEntryRepository.deleteById(id);
     }
 }
