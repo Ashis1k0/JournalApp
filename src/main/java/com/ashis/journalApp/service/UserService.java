@@ -37,4 +37,19 @@ public class UserService {
     {
         return userRepository.findByUserName(userName);
     }
+
+//    public User updateUser(ObjectId Id, User newUser) {
+//        User oldUser = userRepository.findById(Id)
+//                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + Id));
+//
+//        // Update only if new value is not null and not empty
+//        if (newUser.getUserName() != null && !newUser.getUserName().isEmpty()) {
+//            oldUser.getUserName(newUser.getUserName());
+//        }
+//        if (newUser.getPassword() != null && !newUser.getPassword().isEmpty()) {
+//            oldUser.setPassword(newUser.getPassword());
+//        }
+//
+//        return userRepository.save(oldUser);
+//    }
 }
